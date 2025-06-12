@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-authentication",
+  "name": "nestjs-authentication-module",
   "version": "0.1.0",
   "description": "Authentication module for NestJS",
   "main": "dist/index.js",
