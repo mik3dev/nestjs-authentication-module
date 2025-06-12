@@ -9,6 +9,7 @@ A comprehensive JWT authentication library for NestJS microservices that provide
 - **JWKS Endpoint**: Expose public keys for client validation
 - **Guards**: Ready-to-use authentication guards for protecting routes
 - **Refresh Token Support**: Built-in refresh token handling
+- **User Decorators**: Type-safe decorators to access authenticated user data in controllers
 
 ## Installation
 
@@ -132,6 +133,45 @@ export class ProtectedController {
 }
 ```
 
+### Using the GetUser Decorator
+
+The library provides a convenient `GetUser` decorator to extract authenticated user information from requests with full type safety.
+
+#### Basic Usage
+
+```typescript
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, GetUser } from 'nestjs-authentication-module';
+
+// Define your user payload type
+interface UserPayload {
+  sub: string;
+  username: string;
+  roles: string[];
+}
+
+@Controller('users')
+export class UserController {
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@GetUser<UserPayload>() user: UserPayload) {
+    return user;
+  }
+}
+```
+
+#### Accessing Specific Properties
+
+You can also extract specific properties from the user object:
+
+```typescript
+@UseGuards(JwtAuthGuard)
+@Get('username')
+getUsername(@GetUser<string>('username') username: string) {
+  return { username };
+}
+```
+
 ## API Reference
 
 ### AuthenticationModule
@@ -185,6 +225,22 @@ AuthenticationClientModule.registerAsync(options: AuthClientModuleAsyncOptions)
 | publicKey | string | Optional RSA public key if not using jwksUri |
 | issuer | string | JWT issuer to validate |
 | audience | string | JWT audience to validate |
+
+### Decorators
+
+#### GetUser
+
+A parameter decorator to easily extract the authenticated user from requests with type safety.
+
+```typescript
+function GetUser<T = any>(propertyPath?: string): ParameterDecorator
+```
+
+| Parameter | Type | Description |
+|----------|------|-------------|
+| propertyPath | string | Optional path to a specific property of the user object |
+
+When used without arguments, returns the entire user object. When used with a property path, returns the specified property.
 
 ## License
 
