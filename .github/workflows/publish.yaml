@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (e.g., patch, minor, major, or specific version)"
+        description: 'Version to publish (e.g., patch, minor, major, or specific version)'
         required: true
-        default: "patch"
+        default: 'patch'
         type: choice
         options:
           - patch
@@ -24,8 +24,27 @@ permissions:
   packages: write
 
 jobs:
+  test:
+    runs-on: ubunut-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
   publish:
     runs-on: ubuntu-latest
+    needs:
+      - test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,8 +54,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.x"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
