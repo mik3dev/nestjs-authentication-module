@@ -9,6 +9,79 @@ import { JwksController } from './jwks.controller';
 
 @Module({})
 export class AuthenticationModule {
+  /**
+   * Registers the authentication module with direct options
+   * @param options Authentication module configuration options
+   */
+  static register(options: AuthModuleOptions): DynamicModule {
+    // Create JWT Module with provided configuration
+    const jwtModule = JwtModule.register({
+      privateKey: options.privateKey,
+      publicKey: options.publicKey,
+      signOptions: {
+        algorithm: 'RS256',
+        issuer: options.issuer,
+        audience: options.audience,
+      },
+    });
+    
+    // Create the JWKS provider
+    const jwksProvider = {
+      provide: 'JWKS_SERVICE',
+      useValue: {
+        getSigningKeys: async () => {
+          try {
+            // Create a simple structure with the provided public key
+            return [{
+              kid: 'auth-key-1', // Key identifier
+              getPublicKey: () => options.publicKey,
+              publicKey: options.publicKey,
+            }];
+          } catch (error) {
+            console.error('Error obtaining signing keys:', error);
+            return [];
+          }
+        }
+      },
+    };
+    
+    return {
+      module: AuthenticationModule,
+      imports: [PassportModule, jwtModule],
+      providers: [
+        {
+          provide: 'AUTH_MODULE_OPTIONS',
+          useValue: options,
+        },
+        {
+          provide: AuthenticationService,
+          useFactory: (jwt: JwtService, opts: AuthModuleOptions) => new AuthenticationService(jwt, opts),
+          inject: [JwtService, 'AUTH_MODULE_OPTIONS'],
+        },
+        {
+          provide: JwtStrategy,
+          useFactory: (opts: AuthModuleOptions) => new JwtStrategy(opts),
+          inject: ['AUTH_MODULE_OPTIONS'],
+        },
+        {
+          provide: RefreshStrategy,
+          useFactory: (opts: AuthModuleOptions) => new RefreshStrategy(opts),
+          inject: ['AUTH_MODULE_OPTIONS'],
+        },
+        JwtAuthGuard,
+        JwtRefreshGuard,
+        jwksProvider,
+        JwksController,
+      ],
+      exports: [AuthenticationService, JwtAuthGuard, JwtRefreshGuard],
+      controllers: [JwksController],
+    };
+  }
+
+  /**
+   * Registers the authentication module asynchronously, allowing dependency injection
+   * to obtain configuration (for example, from ConfigService)
+   */
   static registerAsync(opts: AuthModuleAsyncOptions): DynamicModule {
     const jwtModule = JwtModule.registerAsync({
       imports: opts.imports || [],

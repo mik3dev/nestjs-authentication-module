@@ -26,7 +26,34 @@ This library can be used in two different ways:
 
 ### Authentication Server Usage
 
-For services that need to generate tokens (auth microservices):
+For services that need to generate tokens (auth microservices), you have two options: synchronous and asynchronous registration.
+
+#### Synchronous Registration
+
+Use this when you have all configuration values available at module initialization time:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AuthenticationModule } from 'nestjs-authentication-module';
+
+@Module({
+  imports: [
+    AuthenticationModule.register({
+      privateKey: process.env.JWT_PRIVATE_KEY,
+      publicKey: process.env.JWT_PUBLIC_KEY,
+      issuer: 'auth-service',
+      audience: 'api',
+      accessTokenExpiresIn: '15m',
+      refreshTokenExpiresIn: '7d'
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+#### Asynchronous Registration
+
+Use this when you need to dynamically resolve configuration from a service:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -44,8 +71,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         publicKey: configService.get<string>('JWT_PUBLIC_KEY'),
         issuer: configService.get<string>('JWT_ISSUER', 'auth-service'),
         audience: configService.get<string>('JWT_AUDIENCE', 'api'),
-        expiresIn: configService.get<string>('JWT_EXPIRES_IN', '15m'),
-        refreshExpiresIn: configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d')
+        accessTokenExpiresIn: configService.get<string>('JWT_EXPIRES_IN', '15m'),
+        refreshTokenExpiresIn: configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d')
       }),
     }),
   ],
@@ -91,7 +118,31 @@ export class AuthController {
 
 ### Authentication Client Usage
 
-For services that only need to validate tokens:
+For services that only need to validate tokens, you can use either synchronous or asynchronous registration.
+
+#### Synchronous Registration
+
+Use this when your configuration is known at initialization time:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { AuthenticationClientModule } from 'nestjs-authentication-module';
+
+@Module({
+  imports: [
+    AuthenticationClientModule.register({
+      jwksUrl: 'https://auth-service.example.com/.well-known/jwks.json',
+      issuer: 'auth-service',
+      audience: 'api'
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+#### Asynchronous Registration
+
+Use this when you need to dynamically resolve configuration from a service:
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -105,11 +156,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        jwksUri: configService.get<string>('AUTH_JWKS_URI'),
-        // Alternative to jwksUri: provide the public key directly
-        // publicKey: configService.get<string>('JWT_PUBLIC_KEY'),
-        issuer: configService.get<string>('JWT_ISSUER'),
-        audience: configService.get<string>('JWT_AUDIENCE'),
+        jwksUrl: configService.get<string>('JWKS_URL'),
+        issuer: configService.get<string>('JWT_ISSUER', 'auth-service'),
+        audience: configService.get<string>('JWT_AUDIENCE', 'api'),
       }),
     }),
   ],

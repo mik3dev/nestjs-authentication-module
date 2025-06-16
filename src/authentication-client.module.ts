@@ -11,6 +11,30 @@ import { JwtClientAuthGuard } from './guards';
 @Module({})
 export class AuthenticationClientModule {
   /**
+   * Registers the client module with direct options
+   * @param options Authentication client configuration options
+   */
+  static register(options: AuthClientModuleOptions): DynamicModule {
+    return {
+      module: AuthenticationClientModule,
+      imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
+      providers: [
+        {
+          provide: 'AUTH_CLIENT_OPTIONS',
+          useValue: options,
+        },
+        {
+          provide: JwtClientStrategy,
+          useFactory: (opts: AuthClientModuleOptions) => new JwtClientStrategy(opts),
+          inject: ['AUTH_CLIENT_OPTIONS'],
+        },
+        JwtClientAuthGuard,
+      ],
+      exports: [JwtClientAuthGuard],
+    };
+  }
+
+  /**
    * Registers the client module asynchronously, allowing dependency injection
    * to obtain configuration (for example, from ConfigService)
    */
