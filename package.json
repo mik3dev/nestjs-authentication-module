@@ -19,9 +19,25 @@
     "test:cov": "jest --coverage",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "nestjs",
+    "authentication",
+    "auth",
+    "jwt",
+    "passport",
+    "strategy",
+    "nestjs-authentication-module"
+  ],
+  "author": "mik3dev",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mik3dev/nestjs-authentication-module.git"
+  },
+  "homepage": "https://github.com/mik3dev/nestjs-authentication-module#readme",
+  "bugs": {
+    "url": "https://github.com/mik3dev/nestjs-authentication-module/issues"
+  },
   "type": "commonjs",
   "devDependencies": {
     "@eslint/js": "^9.29.0",
