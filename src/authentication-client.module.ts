@@ -5,14 +5,14 @@ import { JwtClientStrategy } from './strategies/jwt-client.strategy';
 import { JwtClientAuthGuard } from './guards';
 
 /**
- * Módulo de autenticación para clientes que solo necesitan validar tokens JWT
- * y no requieren la capacidad de generar nuevos tokens.
+ * Authentication module for clients that only need to validate JWT tokens
+ * and do not require the ability to generate new tokens.
  */
 @Module({})
 export class AuthenticationClientModule {
   /**
-   * Registra el módulo cliente de forma asíncrona, permitiendo inyección de dependencias
-   * para obtener configuración (por ejemplo, desde ConfigService)
+   * Registers the client module asynchronously, allowing dependency injection
+   * to obtain configuration (for example, from ConfigService)
    */
   static registerAsync(opts: AuthClientModuleAsyncOptions): DynamicModule {
     return {
@@ -24,7 +24,7 @@ export class AuthenticationClientModule {
       providers: [
         {
           provide: 'AUTH_CLIENT_OPTIONS',
-          useFactory: async (...args: any[]) => opts.useFactory(...args),
+          useFactory: async (...args: unknown[]) => opts.useFactory(...args),
           inject: opts.inject || [],
         },
         {

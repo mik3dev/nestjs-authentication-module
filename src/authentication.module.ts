@@ -1,7 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwksClient } from 'jwks-rsa';
 import { AuthModuleOptions, AuthModuleAsyncOptions } from './interfaces';
 import { AuthenticationService } from './authentication.service';
 import { JwtStrategy, RefreshStrategy } from './strategies';
@@ -13,7 +12,7 @@ export class AuthenticationModule {
   static registerAsync(opts: AuthModuleAsyncOptions): DynamicModule {
     const jwtModule = JwtModule.registerAsync({
       imports: opts.imports || [],
-      useFactory: async (...args: any[]) => {
+      useFactory: async (...args: unknown[]) => {
         const o = await opts.useFactory(...args);
         return {
           privateKey: o.privateKey,
@@ -28,23 +27,23 @@ export class AuthenticationModule {
       inject: opts.inject || [],
     });
 
-    // En lugar de JwksClient, creamos un provider personalizado para JWKS
+    // Instead of JwksClient, we create a custom provider for JWKS
     const jwksProvider = {
       provide: 'JWKS_SERVICE',
-      useFactory: async (...args: any[]) => {
+      useFactory: async (...args: unknown[]) => {
         const config = await opts.useFactory(...args);
-        // Retornamos un objeto con las claves necesarias para JWKS
+        // Return an object with the necessary keys for JWKS
         return {
           getSigningKeys: async () => {
             try {
-              // Creamos una estructura simple con la clave pública proporcionada
+              // Create a simple structure with the provided public key
               return [{
-                kid: 'auth-key-1', // Identificador de la clave
+                kid: 'auth-key-1', // Key identifier
                 getPublicKey: () => config.publicKey,
                 publicKey: config.publicKey,
               }];
             } catch (error) {
-              console.error('Error al obtener signing keys:', error);
+              console.error('Error obtaining signing keys:', error);
               return [];
             }
           }
@@ -59,12 +58,12 @@ export class AuthenticationModule {
       providers: [
         {
           provide: 'AUTH_MODULE_OPTIONS',
-          useFactory: async (...args: any[]) => opts.useFactory(...args),
+          useFactory: async (...args: unknown[]) => opts.useFactory(...args),
           inject: opts.inject || [],
         },
         {
           provide: AuthenticationService,
-          useFactory: (jwt: JwtService, options: AuthModuleOptions) => new AuthenticationService(jwt as any, options),
+          useFactory: (jwt: JwtService, options: AuthModuleOptions) => new AuthenticationService(jwt, options),
           inject: [JwtService, 'AUTH_MODULE_OPTIONS'],
         },
         {

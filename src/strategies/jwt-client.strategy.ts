@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthClientModuleOptions } from '../interfaces';
+import { ExtractJwt, Strategy, StrategyOptionsWithoutRequest } from 'passport-jwt';
+import { AuthClientModuleOptions, JwtPayload } from '../interfaces';
 import { passportJwtSecret } from 'jwks-rsa';
 
 @Injectable()
@@ -11,31 +11,45 @@ export class JwtClientStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new Error('Either publicKey or jwksUrl must be provided for JWT validation');
     }
 
-    const jwtOptions: any = {
+    // Create base options object with properly typed algorithm
+    const baseOptions: Partial<StrategyOptionsWithoutRequest> = {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      algorithms: ['RS256'],
+      algorithms: ['RS256'] as const, // Type assertion is needed because passport-jwt expects Algorithm[] but allows string[] at runtime
       issuer: options.issuer,
       audience: options.audience,
     };
 
-    // Si tenemos una URL de JWKS, configuramos el cliente JWKS-RSA
     if (options.jwksUrl) {
-      jwtOptions.secretOrKeyProvider = passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: options.jwksUrl,
-      });
-    } else if (options.publicKey) {
-      // Si tenemos una clave pública directa
-      jwtOptions.secretOrKey = options.publicKey;
-    }
+      // Add secretOrKeyProvider for JWKS
+      const jwksOptions = {
+        ...baseOptions,
+        secretOrKeyProvider: passportJwtSecret({
+          cache: true,
+          rateLimit: true,
+          jwksRequestsPerMinute: 5,
+          jwksUri: options.jwksUrl,
+        })
+      };
 
-    super(jwtOptions);
+      // The type assertion below is necessary because the passport-jwt types don't fully
+      // account for the JWKS configuration pattern we're using. The JWKS integration uses
+      // secretOrKeyProvider instead of secretOrKey, which creates a type mismatch that needs
+      // to be reconciled with the StrategyOptionsWithoutRequest type.
+      super(jwksOptions as StrategyOptionsWithoutRequest);
+    } else if (options.publicKey) {
+      const publicKeyOptions = {
+        ...baseOptions,
+        secretOrKey: options.publicKey
+      };
+
+      // This type assertion ensures our options object conforms to what passport-jwt expects.
+      // While our options are valid at runtime, TypeScript's strict typing requires this assertion
+      // to reconcile the actual structure with the expected interface.
+      super(publicKeyOptions as StrategyOptionsWithoutRequest);
+    }
   }
 
-  // La validación simplemente devuelve el payload para que esté disponible en req.user
-  async validate(payload: any) {
+  async validate(payload: JwtPayload): Promise<JwtPayload> {
     return payload;
   }
 }

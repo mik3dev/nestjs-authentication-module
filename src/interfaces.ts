@@ -36,14 +36,36 @@ export interface AuthClientModuleOptions {
  * Opciones para configurar el módulo principal de autenticación de manera asíncrona
  */
 export interface AuthModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-  useFactory: (...args: any[]) => Promise<AuthModuleOptions> | AuthModuleOptions;
-  inject?: any[];
+  useFactory: (...args: unknown[]) => Promise<AuthModuleOptions> | AuthModuleOptions;
+  inject?: (string | symbol | (abstract new (...args: unknown[]) => object))[];
 }
 
 /**
  * Opciones para configurar el módulo cliente de autenticación de manera asíncrona
  */
 export interface AuthClientModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-  useFactory: (...args: any[]) => Promise<AuthClientModuleOptions> | AuthClientModuleOptions;
-  inject?: any[];
+  useFactory: (...args: unknown[]) => Promise<AuthClientModuleOptions> | AuthClientModuleOptions;
+  inject?: (string | symbol | (abstract new (...args: unknown[]) => object))[];
+}
+
+/**
+ * Standard JWT payload interface with common claims
+ */
+export interface JwtPayload {
+  /** Subject (typically user ID) */
+  sub?: string;
+  /** Issued at timestamp */
+  iat?: number;
+  /** Expiration timestamp */
+  exp?: number;
+  /** JWT ID */
+  jti?: string;
+  /** Issuer */
+  iss?: string;
+  /** Audience */
+  aud?: string;
+  /** Not before timestamp */
+  nbf?: number;
+  /** Additional custom claims can be added as needed */
+  [key: string]: unknown;
 }

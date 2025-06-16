@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthModuleOptions } from './interfaces';
+import { AuthModuleOptions, JwtPayload } from './interfaces';
 
 @Injectable()
 export class AuthenticationService {
@@ -9,7 +9,7 @@ export class AuthenticationService {
     private readonly options: AuthModuleOptions,
   ) { }
 
-  async signAccessToken(payload: any) {
+  async signAccessToken(payload: JwtPayload) {
     return this.jwtService.signAsync(payload, {
       expiresIn: this.options.accessTokenExpiresIn,
       algorithm: 'RS256',
@@ -18,7 +18,7 @@ export class AuthenticationService {
     });
   }
 
-  async signRefreshToken(payload: any) {
+  async signRefreshToken(payload: JwtPayload) {
     return this.jwtService.signAsync(payload, {
       expiresIn: this.options.refreshTokenExpiresIn,
       algorithm: 'RS256',
