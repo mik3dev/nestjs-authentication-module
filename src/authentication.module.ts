@@ -24,7 +24,7 @@ export class AuthenticationModule {
         audience: options.audience,
       },
     });
-    
+
     // Create the JWKS provider
     const jwksProvider = {
       provide: 'JWKS_SERVICE',
@@ -37,14 +37,13 @@ export class AuthenticationModule {
               getPublicKey: () => options.publicKey,
               publicKey: options.publicKey,
             }];
-          } catch (error) {
-            console.error('Error obtaining signing keys:', error);
+          } catch {
             return [];
           }
         }
       },
     };
-    
+
     return {
       module: AuthenticationModule,
       imports: [PassportModule, jwtModule],
@@ -115,8 +114,7 @@ export class AuthenticationModule {
                 getPublicKey: () => config.publicKey,
                 publicKey: config.publicKey,
               }];
-            } catch (error) {
-              console.error('Error obtaining signing keys:', error);
+            } catch {
               return [];
             }
           }

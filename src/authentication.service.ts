@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthModuleOptions, JwtPayload } from './interfaces';
 
@@ -6,7 +6,7 @@ import { AuthModuleOptions, JwtPayload } from './interfaces';
 export class AuthenticationService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly options: AuthModuleOptions,
+    @Inject('AUTH_MODULE_OPTIONS') private readonly options: AuthModuleOptions,
   ) { }
 
   async signAccessToken(payload: JwtPayload) {

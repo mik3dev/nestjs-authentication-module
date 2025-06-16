@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt, StrategyOptionsWithoutRequest } from 'passport-jwt';
 import { AuthModuleOptions, JwtPayload } from '../interfaces';
@@ -16,6 +16,10 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   }
 
   async validate(payload: JwtPayload): Promise<JwtPayload> {
+    // Validate that payload has required fields
+    if (!payload || !payload.sub) {
+      throw new UnauthorizedException('Invalid refresh token payload');
+    }
     return payload;
   }
 }
